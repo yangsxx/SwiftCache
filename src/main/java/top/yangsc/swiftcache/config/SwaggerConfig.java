@@ -36,13 +36,13 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("XXX用户系统API")
+                        .title("SwiftCache-API")
                         .version("1.0")
 
-                        .description( "Knife4j集成springdoc-openapi示例")
-                        .termsOfService("http://doc.xiaominfo.com")
+                        .description( "用于当做基本常用词条速记，及剪切板保存")
+                        .termsOfService("http://xxxxxx")
                         .license(new License().name("Apache 2.0")
-                                .url("http://doc.xiaominfo.com")));
+                                .url("xxxxxx")));
     }
 
 
