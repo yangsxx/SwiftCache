@@ -46,7 +46,7 @@ public class Validator {
                     if (annotation instanceof NotNull){
                         boolean value = ((NotNull)annotation).value();
                         if (value){
-                            if (o1 == null){
+                            if (o1 == null||  "".equals(o1) || "null".equals(o1)){
                                 throw new ParameterValidationException(declaredField.getName() + "字段不可为空");
                             }
                         }

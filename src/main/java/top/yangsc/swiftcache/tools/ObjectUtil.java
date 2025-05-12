@@ -13,7 +13,7 @@ public class ObjectUtil {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] resources = new Resource[0];
         try {
-            resources = resolver.getResources("classpath*:top/yangsc/notesTool"+classPath);
+            resources = resolver.getResources("classpath*:top/yangsc/swiftcache"+classPath);
             for(Resource res :resources) {
 
                 // 先获取resource的元信息，然后获取class元信息，最后得到 class 全路径

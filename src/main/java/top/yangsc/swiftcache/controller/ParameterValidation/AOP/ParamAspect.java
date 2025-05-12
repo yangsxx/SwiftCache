@@ -40,7 +40,7 @@ public class ParamAspect {
 
     }
     private Class getVOClass(Object o) {
-        return ObjectUtil.getClassByObject(o,"/controller/vo/*VO.class");
+        return ObjectUtil.getClassByObject(o,"/controller/bean/vo/*VO.class");
     }
 
 }
