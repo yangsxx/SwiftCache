@@ -3,4 +3,17 @@
 <mapper namespace="top.yangsc.swiftcache.base.mapper.ClipboardValuesMapper">
 
 
+    <select id="insertOne" resultType="long">
+            WITH inserted AS (
+                INSERT INTO clipboard_values(id, content, content_md5)
+                    VALUES (
+                               getId(),
+                               #{content},
+                               decode(md5(#{content}), 'hex')
+                           )
+                    ON CONFLICT (content_md5) DO UPDATE SET content = EXCLUDED.content
+                    RETURNING id
+            )
+            SELECT id FROM inserted;
+    </select>
 </mapper>

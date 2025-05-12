@@ -8,6 +8,7 @@ import top.yangsc.swiftcache.base.mapper.CommonMapper;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
 
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -27,8 +28,18 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
         CommonMapper mapper = SpringContextUtil.getBean(CommonMapper.class);
         log.info("公共字段自动填充[insert]...");
         log.info(metaObject.toString());
-        metaObject.setValue("createTime", new Date());
-        metaObject.setValue("id",mapper.getId());
+
+        // 只填充存在的字段
+        if (metaObject.hasGetter("createdAt")) {
+            metaObject.setValue("createdAt", new Timestamp(System.currentTimeMillis()));
+        }
+        if (metaObject.hasGetter("id")) {
+            metaObject.setValue("id", mapper.getId());
+        }
+        if (metaObject.hasGetter("userId")) {
+                metaObject.setValue("userId", getUserId());
+        }
+
     }
 
     /**
@@ -39,7 +50,18 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
     public void updateFill(MetaObject metaObject) {
         log.info("公共字段自动填充[update]...");
         log.info(metaObject.toString());
-        metaObject.setValue("updateTime", new Date());
+
+        // 只填充存在的字段
+        if (metaObject.hasGetter("updatedAt")) {
+            metaObject.setValue("updatedAt", new Timestamp(System.currentTimeMillis()));
+        }
+        if (metaObject.hasGetter("updatedBy")) {
+            metaObject.setValue("updatedBy", getUserId());
+        }
+    }
+
+    private Long  getUserId(){
+        return CurrentContext.getCurrentUser().getId();
     }
 
 

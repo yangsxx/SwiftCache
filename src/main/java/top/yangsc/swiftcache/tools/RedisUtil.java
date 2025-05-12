@@ -31,4 +31,15 @@ public class RedisUtil {
     }
 
 
+    public static void increment(String key, int i) {
+        template.opsForValue().increment(key, i);
+    }
+
+    public static void expire(String key, int i, TimeUnit timeUnit) {
+        template.expire(key, i, timeUnit);
+    }
+
+    public static void delete(String attemptKey) {
+        template.delete(attemptKey);
+    }
 }

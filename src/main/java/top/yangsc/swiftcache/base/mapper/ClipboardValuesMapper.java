@@ -6,4 +6,5 @@ import top.yangsc.swiftcache.base.pojo.ClipboardValues;
 
 @Mapper
 public interface ClipboardValuesMapper extends BaseMapper<ClipboardValues> {
+    Long insertOne(String content);
 }

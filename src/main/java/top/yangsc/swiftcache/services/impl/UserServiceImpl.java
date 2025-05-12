@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import top.yangsc.swiftcache.base.ResultData;
 import top.yangsc.swiftcache.base.field.RedisPreFix;
 import top.yangsc.swiftcache.base.mapper.UserMapper;
-import top.yangsc.swiftcache.base.pojo.User;
+import top.yangsc.swiftcache.base.pojo.Users;
 import top.yangsc.swiftcache.controller.bean.vo.LoginVO;
 import top.yangsc.swiftcache.controller.bean.vo.RegisterVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.LoginRespVO;
@@ -18,7 +18,7 @@ import top.yangsc.swiftcache.tools.RedisUtil;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -29,32 +29,54 @@ import java.util.List;
  * @since 2023-06-19
  */
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, Users> implements IUserService {
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+    private static final String LOGIN_ATTEMPT_KEY = "login_attempt:";
+    private static final String JWT_SECRET = "your_strong_secret_key_here"; // 替换为更强的密钥
 
     @Resource
     private UserMapper userMapper;
 
 
     @Override
-
     public ResultData<LoginRespVO> login(LoginVO loginVO) {
+        // 检查登录尝试次数
+        String attemptKey = LOGIN_ATTEMPT_KEY + loginVO.getPhone();
+        Integer attempts = (Integer) RedisUtil.getValue(attemptKey);
+        if (attempts != null && attempts >= MAX_LOGIN_ATTEMPTS) {
+            throw new RuntimeException("登录尝试次数过多，请稍后再试");
+        }
 
-        LambdaQueryWrapper<User> wrapper=new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<User> eq = wrapper.eq(User::getPhone, loginVO.getPhone())
-                .eq(User::getUsed, 1);
-        List<User> list = userMapper.selectList(eq);
-        if (list.isEmpty()){
-            throw new RuntimeException("登录失败");
+        LambdaQueryWrapper<Users> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Users::getPhone, loginVO.getPhone())
+               .eq(Users::getUsed, 1);
+        Users user = userMapper.selectOne(wrapper);
+
+        if (user == null) {
+            incrementLoginAttempt(attemptKey);
+            throw new RuntimeException("用户名或密码错误");
         }
-        User user=list.get(0);
-        String token ="";
-        if (MD5.create().digestHex(loginVO.getPasswd()).equals(user.getVoucher())){
-            token = JWTUtil.createToken(new HashMap<>(),"1999".getBytes(StandardCharsets.UTF_8));
-            RedisUtil.setValue(RedisPreFix.USERLONGIN+token,user);
-        }else {
-            throw new RuntimeException("登录失败");
+
+        // 密码验证（加盐哈希）
+        String hashedInput = MD5.create().digestHex( loginVO.getPasswd());
+        if (!hashedInput.equals(user.getVoucher())) {
+            incrementLoginAttempt(attemptKey);
+            throw new RuntimeException("用户名或密码错误");
         }
-        LoginRespVO respVO=new LoginRespVO();
+
+        // 生成JWT token
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("userId", user.getId());
+        payload.put("exp", System.currentTimeMillis() + 1000 * 60 * 60 * 72); // 2小时过期
+        String token = JWTUtil.createToken(payload, JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+
+        // 重置登录尝试次数
+        RedisUtil.delete(attemptKey);
+
+        // 存储token到Redis
+        RedisUtil.setValue(RedisPreFix.USERLONGIN + token, user, 60*72L);
+
+        LoginRespVO respVO = new LoginRespVO();
         user.setVoucher("");
         respVO.setUser(user);
         respVO.setToken(token);
@@ -65,11 +87,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     // todo 暂时使用
     @Override
     public ResultData<String> register(RegisterVO registerVO) {
-        User user=new User();
+        Users user=new Users();
         user.setUserName(registerVO.getUserName());
         user.setPhone(registerVO.getPhone());
         user.setVoucher(MD5.create().digestHex(registerVO.getPassword()));
         userMapper.insert(user);
         return ResultData.ok("注册成功",null);
+    }
+
+    private void incrementLoginAttempt(String key) {
+        RedisUtil.increment(key, 1);
+        RedisUtil.expire(key, 1, TimeUnit.HOURS);
     }
 }

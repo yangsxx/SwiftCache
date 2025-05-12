@@ -1,8 +1,6 @@
 package top.yangsc.swiftcache.base.pojo;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,9 +19,11 @@ public class ClipboardHistory implements Serializable {
 
     @Schema(description = "主键ID")
     @TableField(fill = FieldFill.INSERT)
+    @TableId(type = IdType.NONE)
     private Long id;
 
     @Schema(description = "关联的用户ID")
+    @TableField(fill = FieldFill.INSERT)
     private Long userId;
 
     @Schema(description = "记录创建时间，自动填充")

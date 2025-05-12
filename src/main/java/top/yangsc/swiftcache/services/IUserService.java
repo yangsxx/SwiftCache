@@ -2,7 +2,7 @@ package top.yangsc.swiftcache.services;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.yangsc.swiftcache.base.ResultData;
-import top.yangsc.swiftcache.base.pojo.User;
+import top.yangsc.swiftcache.base.pojo.Users;
 import top.yangsc.swiftcache.controller.bean.vo.LoginVO;
 import top.yangsc.swiftcache.controller.bean.vo.RegisterVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.LoginRespVO;
@@ -16,7 +16,7 @@ import top.yangsc.swiftcache.controller.bean.vo.resp.LoginRespVO;
  * @author yang
  * @since 2023-06-19
  */
-public interface IUserService extends IService<User> {
+public interface IUserService extends IService<Users> {
 
     ResultData<LoginRespVO> login(LoginVO loginVO);
 

@@ -3,7 +3,7 @@
 <mapper namespace="top.yangsc.swiftcache.base.mapper.UserMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="top.yangsc.swiftcache.base.pojo.User">
+    <resultMap id="BaseResultMap" type="top.yangsc.swiftcache.base.pojo.Users">
         <result column="id" property="id" />
         <result column="user_name" property="userName" />
         <result column="voucher" property="voucher" />

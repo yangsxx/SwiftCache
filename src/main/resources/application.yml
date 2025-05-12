@@ -22,8 +22,8 @@ spring:
       filters: stat,wall
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ip.yangsc.top
+      port: 6388
       password:
       database: 0
   mvc:

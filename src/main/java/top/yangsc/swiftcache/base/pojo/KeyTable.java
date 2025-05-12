@@ -29,7 +29,7 @@ public class KeyTable implements Serializable {
 
     @Schema(description = "所有者用户ID")
     @TableField(fill = FieldFill.INSERT)
-    private Long ownerId;
+    private Long userId;
 
     @Schema(description = "当前值,对于multiple可为空")
     private String currentValue;

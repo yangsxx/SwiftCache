@@ -2,7 +2,7 @@ package top.yangsc.swiftcache.base.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import top.yangsc.swiftcache.base.pojo.User;
+import top.yangsc.swiftcache.base.pojo.Users;
 
 /**
  * <p>
@@ -13,6 +13,6 @@ import top.yangsc.swiftcache.base.pojo.User;
  * @since 2023-06-19
  */
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
+public interface UserMapper extends BaseMapper<Users> {
 
 }
