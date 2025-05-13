@@ -39,6 +39,9 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
         if (metaObject.hasGetter("userId")) {
                 metaObject.setValue("userId", getUserId());
         }
+        if (metaObject.hasGetter("createdBy")) {
+            metaObject.setValue("createdBy", getUserId());
+        }
 
     }
 

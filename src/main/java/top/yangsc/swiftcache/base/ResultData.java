@@ -36,5 +36,9 @@ public class ResultData<T>{
         return new ResultData<>(405, errmsg, null);
     }
 
+    public static ResultData<String> Exception(Integer code,String errmsg){
+        return new ResultData<>(code, errmsg, null);
+    }
+
 
 }

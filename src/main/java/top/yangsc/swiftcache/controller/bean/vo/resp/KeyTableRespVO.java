@@ -1,7 +1,6 @@
 package top.yangsc.swiftcache.controller.bean.vo.resp;
 
 import lombok.Data;
-import top.yangsc.swiftcache.base.pojo.ValueTable;
 
 import java.util.List;
 
@@ -15,8 +14,7 @@ import java.util.List;
 public class KeyTableRespVO {
     private Long id;
     private String key;
-    private String[] currentValues;
-    private List<HistoryValue> values;
+    private List<ForKeyValue> values;
     private int permission;
     private String createTime;
     private String updateTime;

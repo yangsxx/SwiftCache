@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import top.yangsc.swiftcache.base.Exception.ParameterValidationException;
+import top.yangsc.swiftcache.base.Exception.PermissionException;
 import top.yangsc.swiftcache.base.ResultData;
+import top.yangsc.swiftcache.base.emun.HttpCode;
 
 
 import java.sql.SQLException;
@@ -24,6 +26,14 @@ public class ControllerAdvice {
         exception.fillInStackTrace();
         exception.printStackTrace();
         return ResultData.error("数据库异常，请联系管理员处理");
+    }
+
+    @ExceptionHandler(PermissionException.class)
+    public ResultData<String> PermissionCatcher(SQLException exception){
+        exception.fillInStackTrace();
+        exception.printStackTrace();
+        return ResultData.Exception(HttpCode.FORBIDDEN.ordinal(),StringUtils.isEmpty(exception.getMessage())?"系统繁忙中，请稍后再试":"权限异常："+exception.getMessage());
+
     }
 
     @ExceptionHandler(RuntimeException.class)

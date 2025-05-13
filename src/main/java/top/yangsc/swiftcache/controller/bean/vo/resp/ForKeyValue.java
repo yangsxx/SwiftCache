@@ -9,7 +9,7 @@ import lombok.Data;
  * @date 2025/5/13 10:47
  */
 @Data
-public class HistoryValue {
+public class ForKeyValue {
     private Long id;
     private String[] values;
     private String createTime;

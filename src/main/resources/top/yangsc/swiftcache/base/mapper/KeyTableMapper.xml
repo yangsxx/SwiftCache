@@ -4,5 +4,19 @@
 
     <resultMap id="BaseResultMap" type="top.yangsc.swiftcache.base.pojo.KeyTable">
     </resultMap>
+    <select id="findMaxVersion" resultType="java.lang.Integer">
+        select max(version) from value_table where key_id = #{id}
+    </select>
+    <select id="selectByPage" resultType="top.yangsc.swiftcache.base.pojo.KeyTable">
+        select * from key_table
+                 where (permission_level=1 or permission_level=0 or user_id=#{userId})
+        and is_deleted=false
+        <if test="permission != null">
+            and permission_level=#{permission}
+        </if>
+        order by updated_at desc , created_at desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
 
 </mapper>

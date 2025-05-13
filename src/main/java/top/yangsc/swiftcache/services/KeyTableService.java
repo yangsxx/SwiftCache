@@ -2,20 +2,22 @@ package top.yangsc.swiftcache.services;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.yangsc.swiftcache.base.pojo.KeyTable;
-import top.yangsc.swiftcache.controller.bean.vo.CreateKeyTableVO;
-import top.yangsc.swiftcache.controller.bean.vo.PageBaseVO;
+import top.yangsc.swiftcache.controller.bean.vo.KeyTablePageVO;
+import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.KeyTableRespVO;
 
+import java.util.List;
+
 public interface KeyTableService extends IService<KeyTable> {
-    boolean createKeyTable(CreateKeyTableVO createKeyTableVO);
+    boolean createKeyTable(UpdateKeyValueVO createKeyTableVO);
 
-    boolean updateKeyTable(CreateKeyTableVO createKeyTableVO);
+    boolean updateKeyTable(UpdateKeyValueVO createKeyTableVO);
 
-    KeyTableRespVO getValue(String id);
+    KeyTableRespVO getValue(Long id);
 
-    boolean delete(String id);
+    boolean delete(Long id);
 
-    boolean updatePermission(String id, int permission);
+    boolean updatePermission(Long id, int permission);
 
-    KeyTableRespVO getKeyTableByPage(PageBaseVO pageBaseVO);
+    List<KeyTableRespVO> getKeyTableByPage(KeyTablePageVO pageBaseVO);
 }

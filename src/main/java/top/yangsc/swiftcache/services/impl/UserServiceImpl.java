@@ -84,7 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, Users> implements I
         return ResultData.ok("登录", respVO);
     }
 
-    // todo 暂时使用
+
     @Override
     public ResultData<String> register(RegisterVO registerVO) {
         Users user=new Users();
