@@ -33,15 +33,8 @@ public class ValueTable implements Serializable {
     @TableField(fill = FieldFill.INSERT)
     private Timestamp createdAt;
 
-    @Schema(description = "更新时间")
-    @TableField(fill = FieldFill.UPDATE)
-    private Timestamp updatedAt;
 
     @Schema(description = "创建人ID")
     @TableField(fill = FieldFill.INSERT)
     private Long createdBy;
-
-    @Schema(description = "更新人ID")
-    @TableField(fill = FieldFill.UPDATE)
-    private Long updatedBy;
 }

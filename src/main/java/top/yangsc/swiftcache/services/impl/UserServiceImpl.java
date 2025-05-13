@@ -57,7 +57,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, Users> implements I
             throw new RuntimeException("用户名或密码错误");
         }
 
-        // 密码验证（加盐哈希）
+        // 密码验证（哈希）
         String hashedInput = MD5.create().digestHex( loginVO.getPasswd());
         if (!hashedInput.equals(user.getVoucher())) {
             incrementLoginAttempt(attemptKey);
@@ -67,7 +67,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, Users> implements I
         // 生成JWT token
         HashMap<String, Object> payload = new HashMap<>();
         payload.put("userId", user.getId());
-        payload.put("exp", System.currentTimeMillis() + 1000 * 60 * 60 * 72); // 2小时过期
+        payload.put("exp", System.currentTimeMillis() + 1000 * 60 * 60 * 72);
         String token = JWTUtil.createToken(payload, JWT_SECRET.getBytes(StandardCharsets.UTF_8));
 
         // 重置登录尝试次数

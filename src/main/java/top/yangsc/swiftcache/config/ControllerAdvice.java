@@ -17,7 +17,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(ParameterValidationException.class)
     public ResultData<String> ParameterValidationExceptionCatcher(ParameterValidationException exception){
-        return ResultData.paramException(StringUtils.isEmpty(exception.getMessage())?"系统繁忙中，请稍后再试":exception.getMessage());
+        return ResultData.paramException(StringUtils.isEmpty(exception.getMessage())?"系统繁忙中，请稍后再试":"参数校验异常："+exception.getMessage());
     }
     @ExceptionHandler(SQLException.class)
     public ResultData<String> SqlExceptionCatcher(SQLException exception){

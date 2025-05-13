@@ -30,11 +30,11 @@ public class ClipboardController {
         return clipboardHistoryService.createClipboard(createClipboardVO);
     }
 
-    @GetMapping("/getByPage")
+    @PostMapping("/getByPage")
     @Operation(summary = "分页获取剪贴板")
     public ResultData<ClipboardRespVO> getClipboardByPage(@RequestBody ClipboardPageVO clipboardPageVO)
     {
-        return clipboardHistoryService.getClipboard();
+        return clipboardHistoryService.getClipboard(clipboardPageVO);
     }
 
 

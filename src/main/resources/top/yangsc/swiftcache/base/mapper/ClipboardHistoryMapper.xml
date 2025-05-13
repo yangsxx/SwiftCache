@@ -6,4 +6,11 @@
     </resultMap>
 
 
+    <select id="getClipboard" resultType="top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO">
+        select ch.*,cv.content from clipboard_history ch
+                          left join clipboard_values cv on  ch.value_id = cv.id
+        limit #{pageSize} offset ((#{pageNum}-1)*#{pageSize});
+    </select>
+
+
 </mapper>

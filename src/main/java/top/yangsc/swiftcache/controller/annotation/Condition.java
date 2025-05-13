@@ -31,16 +31,18 @@ public @interface Condition {
     Class<? extends Serializable> clz() ;
 
     /**
-     * 对应表字段
+     * 对应表字段，不填按照小驼峰转换，例如：userName  -> user_name
      * @return
      */
     String fieldName() default "";
 
     /**
      * 自定义条件，会拼接where进行使用，${value}如果需要属性的值请使用此字符表示。如需使用必须填写正确的fieldName值，否则将不会生效
-     * 复杂校验请重写BaseVO方法
+     * 不涉及表逻辑的请重写BaseVO方法
      * @return
      */
     String where() default "";
-    String table();
+    String table() default "";
+
+
 }

@@ -7,8 +7,7 @@ import top.yangsc.swiftcache.base.ResultData;
 import top.yangsc.swiftcache.base.mapper.ClipboardHistoryMapper;
 import top.yangsc.swiftcache.base.mapper.ClipboardValuesMapper;
 import top.yangsc.swiftcache.base.pojo.ClipboardHistory;
-import top.yangsc.swiftcache.base.pojo.ClipboardValues;
-import top.yangsc.swiftcache.config.CurrentContext;
+import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
 import top.yangsc.swiftcache.controller.bean.vo.CreateClipboardVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 import top.yangsc.swiftcache.services.ClipboardHistoryService;
@@ -25,6 +24,7 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     private ClipboardValuesMapper clipboardValuesMapper;
 
     MD5 md5 = MD5.create();
+
     @Override
     public ResultData<String> createClipboard(CreateClipboardVO createClipboardVO) {
 //      查重插入，并获取id
@@ -49,7 +49,9 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     }
 
     @Override
-    public ResultData<ClipboardRespVO> getClipboard() {
-        return null;
+    public ResultData<ClipboardRespVO> getClipboard(ClipboardPageVO clipboardPageVO) {
+        clipboardPageVO.setOffset((clipboardPageVO.getPageNum()-1) * clipboardPageVO.getPageSize());
+        ClipboardRespVO clipboardPageRespVO = clipboardHistoryMapper.getClipboard(clipboardPageVO);
+        return ResultData.ok("获取成功",clipboardPageRespVO);
     }
 }

@@ -8,6 +8,7 @@ import top.yangsc.swiftcache.controller.ParameterValidation.BaseVO;
 import top.yangsc.swiftcache.controller.annotation.Condition;
 import top.yangsc.swiftcache.controller.annotation.Entity;
 import top.yangsc.swiftcache.controller.annotation.NotNull;
+import top.yangsc.swiftcache.controller.annotation.RegexValidator;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
 import top.yangsc.swiftcache.tools.TableUtil;
 
@@ -82,6 +83,14 @@ public class Validator {
                             }
                         }
 
+                    }
+                    if (annotation instanceof RegexValidator){
+                        RegexValidator regexValidator=(RegexValidator) annotation;
+                        if (!StringUtils.isEmpty(regexValidator.regex())){
+                            if (!o1.toString().matches(regexValidator.regex())){
+                                throw new ParameterValidationException(declaredField.getName() + "参数格式不规则");
+                            }
+                        }
                     }
                 }
             }
