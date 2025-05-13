@@ -126,3 +126,21 @@ COMMENT ON INDEX idx_history_user IS '按用户ID查询的优化索引';
 COMMENT ON INDEX idx_history_time IS '按时间排序查询的优化索引';
 COMMENT ON INDEX idx_values_md5 IS '按MD5哈希值快速查找内容的索引';
 
+CREATE TABLE execution_log (
+                               id SERIAL PRIMARY KEY,
+                               class_name VARCHAR(255) NOT NULL,
+                               method_name VARCHAR(255) NOT NULL,
+                               execution_time BIGINT NOT NULL,
+                               execution_date TIMESTAMP NOT NULL,
+                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX exec_time ON "execution_log" (execution_time);
+
+COMMENT ON TABLE execution_log IS '方法执行日志记录表';
+COMMENT ON COLUMN execution_log.class_name IS '类名';
+COMMENT ON COLUMN execution_log.method_name IS '方法名';
+COMMENT ON COLUMN execution_log.execution_time IS '执行时间(ms)';
+COMMENT ON COLUMN execution_log.execution_date IS '执行日期';
+COMMENT ON COLUMN execution_log.created_at IS '记录创建时间';
+

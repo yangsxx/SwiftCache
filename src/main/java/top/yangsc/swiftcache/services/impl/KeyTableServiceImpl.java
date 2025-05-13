@@ -12,7 +12,7 @@ import top.yangsc.swiftcache.base.mapper.KeyTableMapper;
 import top.yangsc.swiftcache.base.mapper.ValueTableMapper;
 import top.yangsc.swiftcache.base.pojo.KeyTable;
 import top.yangsc.swiftcache.base.pojo.ValueTable;
-import top.yangsc.swiftcache.config.CurrentContext;
+import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
 import top.yangsc.swiftcache.controller.bean.vo.KeyTablePageVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ForKeyValue;

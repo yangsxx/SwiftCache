@@ -5,14 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.base.mapper.CommonMapper;
+import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
 
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * 自定义元数据对象处理器
+ * 自动填充字段
  */
 @Component
 @Slf4j

@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 import top.yangsc.swiftcache.base.field.RedisPreFix;
 import top.yangsc.swiftcache.base.pojo.Users;
-import top.yangsc.swiftcache.config.CurrentContext;
+import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
 import top.yangsc.swiftcache.tools.RedisUtil;
 
 

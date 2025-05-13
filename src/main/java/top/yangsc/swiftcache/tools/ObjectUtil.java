@@ -7,13 +7,23 @@ import org.springframework.core.type.classreading.SimpleMetadataReaderFactory;
 import java.io.IOException;
 
 public class ObjectUtil {
+    public static Resource[] resources = new Resource[0];
+    public static Resource[] resourcesVO = new Resource[0];
+
+    static {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        try {
+            resources = resolver.getResources("classpath*:top/yangsc/swiftcache/**/*.class");
+            resourcesVO = resolver.getResources("classpath*:top/yangsc/swiftcache/**/VO*.class");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     //通过对象和类路径扫描，获取class对象
-    public static Class getClassByObject(Object o ,String classPath){
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = new Resource[0];
+    public static Class getClassByObject(Object o){
         try {
-            resources = resolver.getResources("classpath*:top/yangsc/swiftcache"+classPath);
+
             for(Resource res :resources) {
 
                 // 先获取resource的元信息，然后获取class元信息，最后得到 class 全路径
