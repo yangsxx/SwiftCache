@@ -35,7 +35,7 @@ public class FindUserWithCache {
 
             Users users = getUserById(idLong);
             RedisUtil.putHash(RedisPreFix.USERINFOKEY,id, users);
-            RedisUtil.putHash(RedisPreFix.USERINFOKEY,id, false);
+            RedisUtil.putHash(RedisPreFix.USERISUPDATEKEY,id, false);
             return users;
         }
         else {
