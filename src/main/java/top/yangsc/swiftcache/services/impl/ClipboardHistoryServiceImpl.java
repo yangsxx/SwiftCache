@@ -47,10 +47,6 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
 
 
         int insert = clipboardHistoryMapper.insert(clipboardHistory);
-        if (insert != 1){
-            throw  new RuntimeException("数据库操作失败，请联系管理员");
-        }
-
 
         return ResultData.ok("记录完成");
     }

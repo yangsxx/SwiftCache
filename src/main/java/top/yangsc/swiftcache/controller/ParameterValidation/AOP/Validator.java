@@ -86,14 +86,15 @@ public class Validator {
                     }
                 } else if (annotation instanceof Condition condition) {
                     if (fieldValue != null) {
-                        String tableName = condition.fieldName().isBlank() ?
+                        String CName = condition.fieldName().isBlank() ?
                                 TableUtil.toTab(field.getName()) : condition.fieldName();
+                        String TabName = condition.table();
                         // 收集需要检查的条件，延迟数据库查询
                         if (condition.unique() || condition.absent()) {
-                            conditionChecks.add(new ConditionCheck(tableName, condition, String.valueOf(fieldValue)));
+                            conditionChecks.add(new ConditionCheck(TabName, condition, String.valueOf(fieldValue),CName));
                         }
                         if (!StringUtils.isEmpty(condition.where())) {
-                            if (mapper.isExistByWhere(TableUtil.toTab(tableName), condition.where())) {
+                            if (mapper.isExistByWhere(TableUtil.toTab(CName), condition.where())) {
                                 throw new ParameterValidationException(field.getName() + "不符合参数条件");
                             }
                         }
@@ -151,7 +152,7 @@ public class Validator {
     private void checkConditions(List<ConditionCheck> checks) {
         // 假设 SimpleMapper 提供批量查询方法
         for (ConditionCheck check : checks) {
-            boolean exists = mapper.isExist(check.tableName, check.tableName, check.value);
+            boolean exists = mapper.isExist(check.tableName, check.CName, check.value);
             if (check.condition.unique() && exists) {
                 throw new ParameterValidationException(check.tableName + "已存在相同的数据");
             }
@@ -168,11 +169,13 @@ public class Validator {
         String tableName;
         Condition condition;
         String value;
+        String CName;
 
-        ConditionCheck(String tableName, Condition condition, String value) {
+        ConditionCheck(String tableName, Condition condition, String value, String CName) {
             this.tableName = tableName;
             this.condition = condition;
             this.value = value;
+            this.CName = CName;
         }
     }
 }
