@@ -42,6 +42,10 @@ public class HuoShanAiService implements BaseAiService {
                 .role(ChatMessageRole.USER) // 设置消息角色为用户
                 .content(question) // 设置消息内容
                 .build();
+        ChatMessage userMessage2 = ChatMessage.builder()
+                .role(ChatMessageRole.SYSTEM) // 设置消息角色为用户
+                .content("这是一个用于个人数据库的应用程序，你作为专业的数据管理专家，请根据要求协助处理数据！") // 设置消息内容
+                .build();
 
         // 将用户消息添加到消息列表
         chatMessages.add(userMessage);
