@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.base.mapper.CommonMapper;
 import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
+import top.yangsc.swiftcache.tools.getSystemInfo;
 
 
 import java.sql.Timestamp;
@@ -42,6 +43,9 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
         }
         if (metaObject.hasGetter("createdBy")) {
             metaObject.setValue("createdBy", getUserId());
+        }
+        if (metaObject.hasGetter("systemInfo")) {
+            metaObject.setValue("systemInfo", getSystemInfo.getSySInfo());
         }
 
     }

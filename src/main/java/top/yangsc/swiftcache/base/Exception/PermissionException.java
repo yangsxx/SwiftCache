@@ -9,5 +9,6 @@ package top.yangsc.swiftcache.base.Exception;
  */
 public class PermissionException extends RuntimeException{
     public PermissionException(String meg) {
+        super(meg);
     }
 }

@@ -156,6 +156,7 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
             historyValue.setCreateTime(TimestampUtil.format(valueTables2.get(0).getCreatedAt()));
             historyValue.setId(valueTables2.get(0).getId());
             historyValue.setVersion(valueTables2.get(0).getVersion());
+            historyValue.setCreateBy(FindUserWithCache.findUserById(valueTables2.get(0).getCreatedBy()).getUserName());
 
             historyValues.add(historyValue);
         }
@@ -274,14 +275,15 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
 
     private void validatorUpdateKey(KeyTable keyTable){
         if (keyTable.getPermissionLevel() == -1 || keyTable.getPermissionLevel() == 0){
-            if (keyTable.getUserId() != CurrentContext.getCurrentUser().getId()){
+
+            if (!keyTable.getUserId() .equals(CurrentContext.getCurrentUser().getId()) ){
                 throw new PermissionException("无权限！");
             }
         }
     }
 
     private void validatorDeleteKey(KeyTable keyTable){
-        if (Objects.equals(keyTable.getUserId(), CurrentContext.getCurrentUser().getId())){
+        if (!keyTable.getUserId().equals(CurrentContext.getCurrentUser().getId())){
             throw new PermissionException("无权限！");
         }
     }
