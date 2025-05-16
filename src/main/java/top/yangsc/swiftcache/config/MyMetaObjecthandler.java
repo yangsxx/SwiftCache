@@ -21,6 +21,8 @@ import java.sql.Timestamp;
 public class MyMetaObjecthandler implements MetaObjectHandler {
 
 
+
+
     /**
      * 插入操作，自动填充
      *
@@ -41,7 +43,7 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
         if (metaObject.hasGetter("userId")) {
                 metaObject.setValue("userId", getUserId());
         }
-        if (metaObject.hasGetter("createdBy")) {
+        if (metaObject.hasGetter("createdBy") ) {
             metaObject.setValue("createdBy", getUserId());
         }
         if (metaObject.hasGetter("systemInfo")) {
@@ -69,6 +71,7 @@ public class MyMetaObjecthandler implements MetaObjectHandler {
     }
 
     private Long  getUserId(){
+//        return CurrentContext.getCurrentUser().getId() == null ? 10000124L:CurrentContext.getCurrentUser().getId();
         return CurrentContext.getCurrentUser().getId();
     }
 

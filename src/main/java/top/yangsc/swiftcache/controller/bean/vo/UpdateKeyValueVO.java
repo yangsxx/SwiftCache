@@ -22,6 +22,7 @@ public class UpdateKeyValueVO implements BaseVO {
     private String key;
     private List<ForKeyValue> values;
     private int permission = 0;
+    private Long userId;
 
 
     @Override

@@ -35,6 +35,12 @@ spring:
   web:
     resources:
       static-locations: classpath:/static/
+  rabbitmq:
+    host: ip.yangsc.top
+    port: 5672
+    username: admin
+    password: admin123
+    virtual-host: /
 
 mybatis-plus:
   mapper-locations: classpath*:*/mapper/**/*.xml

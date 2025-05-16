@@ -33,22 +33,20 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
     @Resource
     private ValueTableMapper valueTableMapper;
 
+
     @Override
     @Transactional
     public boolean createKeyTable(UpdateKeyValueVO createKeyTableVO) {
         KeyTable  keyTable = new KeyTable();
         keyTable.setKeyName(createKeyTableVO.getKey());
         ForKeyValue forKeyValue = createKeyTableVO.getValues().get(0);
-        if ( forKeyValue.getValues().length == 1){
-            keyTable.setIsMultiple(false);
-            keyTable.setCurrentValue(forKeyValue.getValues()[0]);
-        }
-        else {
-            keyTable.setIsMultiple(true);
-            keyTable.setCurrentValue(forKeyValue.getValues()[0]);
-        }
+        keyTable.setIsMultiple(true);
         keyTable.setPermissionLevel((short)createKeyTableVO.getPermission());
         keyTable.setIsDeleted(false);
+        if (createKeyTableVO.getUserId() != null){
+            keyTable.setUserId(10000124L);
+            keyTable.setCreatedBy(10000124L);
+        }
         keyTableMapper.insert(keyTable);
 
         ValueTable valueTable;
@@ -61,6 +59,7 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
         }
         return true;
     }
+
 
     @Override
     @Transactional

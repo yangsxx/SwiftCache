@@ -1,9 +1,12 @@
 package top.yangsc.swiftcache.services.impl;
 
 import cn.hutool.crypto.digest.MD5;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import top.yangsc.swiftcache.Schedule.mq.KeysDTO;
+import top.yangsc.swiftcache.Schedule.mq.Producer;
 import top.yangsc.swiftcache.base.ResultData;
 import top.yangsc.swiftcache.base.cache.FindUserWithCache;
 import top.yangsc.swiftcache.base.mapper.ClipboardHistoryMapper;
@@ -30,6 +33,9 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     @Resource
     private ClipboardValuesMapper clipboardValuesMapper;
 
+    @Resource
+    private Producer producer;
+
     MD5 md5 = MD5.create();
 
     @Override
@@ -46,7 +52,9 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
         clipboardHistory.setValueId(l);
 
 
-        int insert = clipboardHistoryMapper.insert(clipboardHistory);
+        clipboardHistoryMapper.insert(clipboardHistory);
+
+        aiTask(clipboardHistory.getId(),createClipboardVO.getContent());
 
         return ResultData.ok("记录完成");
     }
@@ -61,5 +69,12 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
         });
         Long l = clipboardValuesMapper.selectCount(new LambdaQueryWrapper<>());
         return ResultData.ok("获取成功",PageResult.init(l,clipboardPageVO.getPageSize(),clipboardPageVO.getPageNum(),clipboardPageRespVO));
+    }
+
+    private void aiTask(Long clipboardId ,String content){
+        KeysDTO keysDTO =new KeysDTO();
+        keysDTO.setClipboardValueId(clipboardId);
+        keysDTO.setValue(content);
+        producer.sendAiTask(JSONUtil.toJsonStr(keysDTO));
     }
 }
