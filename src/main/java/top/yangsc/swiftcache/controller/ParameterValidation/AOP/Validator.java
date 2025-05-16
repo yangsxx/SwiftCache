@@ -1,7 +1,12 @@
 package top.yangsc.swiftcache.controller.ParameterValidation.AOP;
 
-
 import com.alibaba.druid.util.StringUtils;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.base.Exception.ParameterValidationException;
 import top.yangsc.swiftcache.base.mapper.SimpleMapper;
 import top.yangsc.swiftcache.controller.ParameterValidation.BaseVO;
@@ -9,92 +14,165 @@ import top.yangsc.swiftcache.controller.annotation.Condition;
 import top.yangsc.swiftcache.controller.annotation.Entity;
 import top.yangsc.swiftcache.controller.annotation.NotNull;
 import top.yangsc.swiftcache.controller.annotation.RegexValidator;
-import top.yangsc.swiftcache.tools.SpringContextUtil;
 import top.yangsc.swiftcache.tools.TableUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.regex.Pattern;
 
-// 传输层参数验证
+/**
+ * 参数验证器，负责校验传输层对象的字段是否符合注解定义的规则
+ */
+@Component
 public class Validator {
-    // 缓存字段访问权限设置
-    private static final ConcurrentHashMap<Field, Boolean> fieldAccessCache = new ConcurrentHashMap<>();
-    // 预编译正则表达式
-    private static final ConcurrentHashMap<String, Pattern> regexCache = new ConcurrentHashMap<>();
-    // 复用SimpleMapper实例
-    private static final SimpleMapper mapper = SpringContextUtil.getBean(SimpleMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(Validator.class);
 
-    static void doValidator(Class<?> clz, Object o) {
-        Field[] declaredFields = clz.getDeclaredFields();
+    // 缓存字段元数据（字段和注解）
+    private static final Cache<Class<?>, Field[]> fieldCache = Caffeine.newBuilder()
+            .maximumSize(100)
+            .build();
+    private static final Cache<Field, Annotation[]> annotationCache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .build();
+    // 缓存预编译正则表达式
+    private static final Cache<String, Pattern> regexCache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .build();
 
-        for (Field declaredField : declaredFields) {
-            // 使用缓存优化字段访问
-            fieldAccessCache.computeIfAbsent(declaredField, f -> {
-                f.setAccessible(true);
-                return true;
-            });
+    private final SimpleMapper mapper;
 
-            Object o1 = null;
+    @Autowired
+    public Validator(SimpleMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    /**
+     * 验证对象的字段是否符合注解规则
+     *
+     * @param clazz    对象类
+     * @param instance 对象实例
+     * @throws ParameterValidationException 如果验证失败
+     */
+    public void doValidator(Class<?> clazz, Object instance) {
+        if (instance == null) {
+            throw new ParameterValidationException("验证对象不能为空");
+        }
+
+        // 从缓存获取字段，减少反射调用
+        Field[] fields = fieldCache.get(clazz, clz -> clz.getDeclaredFields());
+        List<ConditionCheck> conditionChecks = new ArrayList<>();
+
+        for (Field field : fields) {
+            field.setAccessible(true); // 直接设置可访问，无需缓存
+            Object fieldValue;
             try {
-                o1 = declaredField.get(o);
+                fieldValue = field.get(instance);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                log.error("Failed to access field: {}", field.getName(), e);
+                throw new ParameterValidationException("无法访问字段: " + field.getName());
             }
 
-            // 提前获取注解数组避免多次调用
-            Annotation[] annotations = declaredField.getAnnotations();
+            // 从缓存获取注解
+            Annotation[] annotations = annotationCache.get(field, Field::getAnnotations);
             for (Annotation annotation : annotations) {
                 if (annotation instanceof Entity entity) {
-                    doValidator(entity.clz(), o1);
-                }
-                else if (annotation instanceof NotNull notNull) {
-                    boolean value = ((NotNull)annotation).value();
-                    if (value){
-                        if (o1 == null||  "".equals(o1) || "null".equals(o1)){
-                            throw new ParameterValidationException(declaredField.getName() + "字段不可为空");
+                    if (fieldValue != null) {
+                        doValidator(entity.clz(), fieldValue);
+                    }
+                } else if (annotation instanceof NotNull notNull) {
+                    if (notNull.value() && isEmpty(fieldValue)) {
+                        throw new ParameterValidationException(field.getName() + "字段不可为空");
+                    }
+                } else if (annotation instanceof Condition condition) {
+                    if (fieldValue != null) {
+                        String tableName = condition.fieldName().isBlank() ?
+                                TableUtil.toTab(field.getName()) : condition.fieldName();
+                        // 收集需要检查的条件，延迟数据库查询
+                        if (condition.unique() || condition.absent()) {
+                            conditionChecks.add(new ConditionCheck(tableName, condition, String.valueOf(fieldValue)));
+                        }
+                        if (!StringUtils.isEmpty(condition.where())) {
+                            if (mapper.isExistByWhere(TableUtil.toTab(tableName), condition.where())) {
+                                throw new ParameterValidationException(field.getName() + "不符合参数条件");
+                            }
                         }
                     }
-                }
-                else if (annotation instanceof Condition c) {
-                    String tableName = c.fieldName().isBlank() ?
-                        TableUtil.toTab(declaredField.getName()) : c.fieldName();
-
-                    // 使用预缓存的mapper实例
-                    if ((c.unique()) || c.absent()) {
-                        boolean exist = mapper.isExist(c.table(), tableName, String.valueOf(o1));
-                        if (c.unique()&&exist){
-                            throw new ParameterValidationException(declaredField.getName() + "已存在相同的数据");
-                        }
-                        if (c.absent()&&!exist){
-                            throw new ParameterValidationException(declaredField.getName() + "数据不存在");
-                        }
-                    }
-                    if (!StringUtils.isEmpty(c.where())){
-                        if (mapper.isExistByWhere(TableUtil.toTab(tableName),c.where())){
-                            throw new ParameterValidationException(declaredField.getName() + "不符合参数条件");
-                        }
-                    }
-                }
-                else if (annotation instanceof RegexValidator regexValidator) {
+                } else if (annotation instanceof RegexValidator regexValidator) {
                     String regex = regexValidator.regex();
-                    if (!StringUtils.isEmpty(regex)) {
-                        // 使用预编译的正则表达式
-                        Pattern pattern = regexCache.computeIfAbsent(regex, Pattern::compile);
-                        if (!pattern.matcher(o1.toString()).matches()) {
-                            throw new ParameterValidationException(declaredField.getName() + "参数格式不规则");
+                    if (!StringUtils.isEmpty(regex) && fieldValue != null) {
+                        Pattern pattern = regexCache.get(regex, Pattern::compile);
+                        if (!pattern.matcher(fieldValue.toString()).matches()) {
+                            throw new ParameterValidationException(field.getName() + "参数格式不规则");
                         }
                     }
                 }
             }
         }
-        if(o instanceof BaseVO){
-            BaseVO baseVO=(BaseVO)o;
-            baseVO.validation();
+
+        // 批量检查唯一性和存在性
+        if (!conditionChecks.isEmpty()) {
+            checkConditions(conditionChecks);
         }
 
+        // 验证 BaseVO 的自定义逻辑
+        if (instance instanceof BaseVO baseVO) {
+            try {
+                baseVO.validation();
+            } catch (Exception e) {
+                log.error("BaseVO validation failed for {}", instance.getClass().getSimpleName(), e);
+                throw new ParameterValidationException("BaseVO验证失败: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 检查字段值是否为空，支持多种类型
+     */
+    private boolean isEmpty(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof String str) {
+            return StringUtils.isEmpty(str);
+        }
+        if (value instanceof Collection<?> collection) {
+            return collection.isEmpty();
+        }
+        if (value instanceof Map<?, ?> map) {
+            return map.isEmpty();
+        }
+        return false;
+    }
+
+    /**
+     * 批量检查唯一性和存在性条件
+     */
+    private void checkConditions(List<ConditionCheck> checks) {
+        // 假设 SimpleMapper 提供批量查询方法
+        for (ConditionCheck check : checks) {
+            boolean exists = mapper.isExist(check.tableName, check.tableName, check.value);
+            if (check.condition.unique() && exists) {
+                throw new ParameterValidationException(check.tableName + "已存在相同的数据");
+            }
+            if (check.condition.absent() && !exists) {
+                throw new ParameterValidationException(check.tableName + "数据不存在");
+            }
+        }
+    }
+
+    /**
+     * 内部类，用于存储条件检查信息
+     */
+    private static class ConditionCheck {
+        String tableName;
+        Condition condition;
+        String value;
+
+        ConditionCheck(String tableName, Condition condition, String value) {
+            this.tableName = tableName;
+            this.condition = condition;
+            this.value = value;
+        }
     }
 }
-
-

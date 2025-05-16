@@ -15,6 +15,7 @@ import top.yangsc.swiftcache.config.ThreadLocalTools.sqlCount.SqlCountUpdate;
 import top.yangsc.swiftcache.tools.ObjectUtil;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
 
+import javax.annotation.Resource;
 import java.lang.reflect.Method;
 
 
@@ -23,6 +24,9 @@ import java.lang.reflect.Method;
 public class ParamAspect {
     // 添加包路径常量
     private static final String VO_PACKAGE = "top.yangsc.swiftcache.controller.bean.vo";
+
+    @Resource
+    private Validator validator;
 
     @Pointcut("execution(* top.yangsc.swiftcache.controller..*Controller.*(..))")
     public void paramPointCut(){
@@ -53,12 +57,11 @@ public class ParamAspect {
                     if (voClass != null
                             && voClass.getPackage() != null
                             && voClass.getPackage().getName().startsWith(VO_PACKAGE)) {
-                        Validator.doValidator(voClass, arg);
+                        validator.doValidator(voClass, arg);
                     }
                 }
             }
         Long validatorTime = System.currentTimeMillis();
-
             o = joinPoint.proceed();
         Long endTime = System.currentTimeMillis();
         recordRuntime(endTime-startTime,validatorTime-startTime,declaringTypeName,name);

@@ -22,10 +22,7 @@ import top.yangsc.swiftcache.services.KeyTableService;
 import top.yangsc.swiftcache.tools.TimestampUtil;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -123,56 +120,7 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
                         .orderByDesc(ValueTable::getVersion)  // 先按版本号降序排序
         );
 
-        // 直接获取第一个元素的版本号作为最高版本
-        if(valueTables.isEmpty()) {
-            throw new ParameterValidationException("id不存在");
-        }
-        Integer latestVersion = valueTables.get(0).getVersion();
-
-        //根据版本号分组
-        Map<Integer, List<ValueTable>> versionMap = valueTables.stream()
-                .collect(Collectors.groupingBy(ValueTable::getVersion));
-
-        //获取最新版本的数据
-        List<ValueTable> valueTables1 = versionMap.get(latestVersion);
-        //当前值
-        String[] currentValues = new String[valueTables1.size()];
-        //取值
-        for (int i = 0; i < valueTables1.size(); i++) {
-            currentValues[i] = valueTables1.get(i).getValueData();
-        }
-
-
-        List<ForKeyValue> historyValues = new ArrayList<>();
-        ForKeyValue historyValue ;
-        for(int i = latestVersion ; i>=1 ; i--){
-            List<ValueTable> valueTables2 = versionMap.get(i);
-            String[] values = new String[valueTables2.size()];
-
-            for (int j=0;j<valueTables2.size();j++) {
-                values[j] = valueTables2.get(j).getValueData();
-            }
-            historyValue = new ForKeyValue();
-            historyValue.setValues(values);
-            historyValue.setCreateTime(TimestampUtil.format(valueTables2.get(0).getCreatedAt()));
-            historyValue.setId(valueTables2.get(0).getId());
-            historyValue.setVersion(valueTables2.get(0).getVersion());
-            historyValue.setCreateBy(FindUserWithCache.findUserById(valueTables2.get(0).getCreatedBy()).getUserName());
-
-            historyValues.add(historyValue);
-        }
-
-        KeyTableRespVO keyTableRespVO = new KeyTableRespVO();
-        keyTableRespVO.setValues(historyValues);
-        keyTableRespVO.setCreateTime(TimestampUtil.format(keyTable.getCreatedAt()));
-        keyTableRespVO.setUpdateTime(TimestampUtil.format(keyTable.getUpdatedAt()));
-        keyTableRespVO.setCreateBy(FindUserWithCache.findUserById(keyTable.getUserId()).getUserName());
-        keyTableRespVO.setId(keyTable.getId());
-        keyTableRespVO.setPermission(keyTable.getPermissionLevel());
-        keyTableRespVO.setKey(keyTable.getKeyName());
-
-
-        return keyTableRespVO;
+        return buildKeyTableRespVO(keyTable, valueTables);
     }
 
     @Override
@@ -212,56 +160,64 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
         }
         pageBaseVO.setOffset((pageBaseVO.getPageNum()-1) * pageBaseVO.getPageSize());
         pageBaseVO.setUserId(CurrentContext.getCurrentUser().getId());
-        List<KeyTable> keyTable = keyTableMapper.selectByPage(pageBaseVO);
+        List<KeyTable> keyTables = keyTableMapper.selectByPage(pageBaseVO);
         Long count = keyTableMapper.selectCountByPage(pageBaseVO);
+
+        // 批量查询 ValueTable
+        List<Long> keyIds = keyTables.stream().map(KeyTable::getId).collect(Collectors.toList());
+        List<ValueTable> valueTables = keyIds.isEmpty() ? Collections.emptyList() :
+                valueTableMapper.selectList(
+                        new LambdaQueryWrapper<ValueTable>()
+                                .in(ValueTable::getKeyId, keyIds)
+                                .orderByDesc(ValueTable::getVersion)
+                );
+
+        // 按 KeyId 分组 ValueTable
+        Map<Long, List<ValueTable>> valueTableMap = valueTables.stream()
+                .collect(Collectors.groupingBy(ValueTable::getKeyId));
 
         List<KeyTableRespVO> keyTableRespVOS = new ArrayList<>();
 
-//        for (KeyTable keyTable1 : keyTable){
-//            KeyTableRespVO value = getValue(keyTable1.getId());
-//            keyTableRespVOS.add(value);
-//        }
 
-        KeyTableRespVO  keyTablePageVO;
-
-        for (KeyTable keyTable1 : keyTable) {
-            keyTablePageVO = new KeyTableRespVO();
-            keyTablePageVO.setId(keyTable1.getId());
-            keyTablePageVO.setKey(keyTable1.getKeyName());
-            keyTablePageVO.setCreateTime(TimestampUtil.format(keyTable1.getCreatedAt()));
-            keyTablePageVO.setUpdateTime(TimestampUtil.format(keyTable1.getUpdatedAt()));
-            keyTablePageVO.setCreateBy(FindUserWithCache.findUserById(keyTable1.getUserId()).getUserName());
-            keyTablePageVO.setPermission(keyTable1.getPermissionLevel());
-
-            List<ForKeyValue> values = new ArrayList<>();
-            ForKeyValue  forKeyValue ;
-            List<ValueTable> valueTableList = valueTableMapper.selectList(new LambdaQueryWrapper<ValueTable>()
-                            .eq(ValueTable::getKeyId, keyTable1.getId())
-                            .orderByDesc(ValueTable::getVersion));
-            Integer version = valueTableList.get(0).getVersion();
-            Map<Integer, List<ValueTable>> collect = valueTableList
-                    .stream()
-                    .collect(Collectors.groupingBy(ValueTable::getVersion));
-
-            for (int i = version ; i >= 1; i--) {
-                List<ValueTable> valueTables = collect.get(i);
-                forKeyValue = new ForKeyValue();
-                forKeyValue.setVersion(valueTables.get(0).getVersion());
-                forKeyValue.setCreateTime(TimestampUtil.format(valueTables.get(0).getCreatedAt()));
-                forKeyValue.setId(valueTables.get(0).getId());
-                forKeyValue.setValues(valueTables.stream().map(ValueTable::getValueData).toArray(String[]::new));
-                forKeyValue.setCreateBy(FindUserWithCache.findUserById(keyTable1.getUserId()).getUserName());
-
-                values.add(forKeyValue);
-            }
-
-            keyTablePageVO.setValues(values);
-
-
-            keyTableRespVOS.add(keyTablePageVO);
-
+        for (KeyTable keyTable1 : keyTables){
+            List<ValueTable> valueTables1 = valueTableMap.get(keyTable1.getId());
+            KeyTableRespVO keyTableRespVO = buildKeyTableRespVO(keyTable1,valueTables1);
+            keyTableRespVOS.add(keyTableRespVO);
         }
+
         return PageResult.init(count, pageBaseVO.getPageSize(),pageBaseVO.getPageNum() , keyTableRespVOS);
+    }
+
+    private KeyTableRespVO buildKeyTableRespVO(KeyTable keyTable1, List<ValueTable> valueTables1) {
+        KeyTableRespVO keyTablePageVO = new KeyTableRespVO();
+        keyTablePageVO.setId(keyTable1.getId());
+        keyTablePageVO.setKey(keyTable1.getKeyName());
+        keyTablePageVO.setCreateTime(TimestampUtil.format(keyTable1.getCreatedAt()));
+        keyTablePageVO.setUpdateTime(TimestampUtil.format(keyTable1.getUpdatedAt()));
+        keyTablePageVO.setCreateBy(FindUserWithCache.findUserById(keyTable1.getUserId()).getUserName());
+        keyTablePageVO.setPermission(keyTable1.getPermissionLevel());
+
+        List<ForKeyValue> values = new ArrayList<>();
+        ForKeyValue  forKeyValue ;
+
+        int version = valueTables1.get(0).getVersion();
+        Map<Integer, List<ValueTable>> collect = valueTables1
+                .stream()
+                .collect(Collectors.groupingBy(ValueTable::getVersion));
+
+        for (int i = version ; i >= 1; i--) {
+            List<ValueTable> valueTables = collect.get(i);
+            forKeyValue = new ForKeyValue();
+            forKeyValue.setVersion(valueTables.get(0).getVersion());
+            forKeyValue.setCreateTime(TimestampUtil.format(valueTables.get(0).getCreatedAt()));
+            forKeyValue.setId(valueTables.get(0).getId());
+            forKeyValue.setValues(valueTables.stream().map(ValueTable::getValueData).toArray(String[]::new));
+            forKeyValue.setCreateBy(FindUserWithCache.findUserById(keyTable1.getUserId()).getUserName());
+
+            values.add(forKeyValue);
+        }
+        keyTablePageVO.setValues(values);
+        return keyTablePageVO;
     }
 
     //todo 待实现
