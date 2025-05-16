@@ -12,6 +12,7 @@ import top.yangsc.swiftcache.base.mapper.KeyTableMapper;
 import top.yangsc.swiftcache.base.mapper.ValueTableMapper;
 import top.yangsc.swiftcache.base.pojo.KeyTable;
 import top.yangsc.swiftcache.base.pojo.ValueTable;
+import top.yangsc.swiftcache.config.PageResult;
 import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
 import top.yangsc.swiftcache.controller.bean.vo.KeyTablePageVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
@@ -205,13 +206,14 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
     }
 
     @Override
-    public List<KeyTableRespVO> getKeyTableByPage(KeyTablePageVO pageBaseVO) {
+    public PageResult<KeyTableRespVO> getKeyTableByPage(KeyTablePageVO pageBaseVO) {
         if (!StringUtils.isEmpty(pageBaseVO.getKey())){
             return findByEs(pageBaseVO);
         }
         pageBaseVO.setOffset((pageBaseVO.getPageNum()-1) * pageBaseVO.getPageSize());
         pageBaseVO.setUserId(CurrentContext.getCurrentUser().getId());
         List<KeyTable> keyTable = keyTableMapper.selectByPage(pageBaseVO);
+        Long count = keyTableMapper.selectCountByPage(pageBaseVO);
 
         List<KeyTableRespVO> keyTableRespVOS = new ArrayList<>();
 
@@ -259,11 +261,11 @@ public class KeyTableServiceImpl extends ServiceImpl<KeyTableMapper, KeyTable> i
             keyTableRespVOS.add(keyTablePageVO);
 
         }
-        return keyTableRespVOS;
+        return PageResult.init(count, pageBaseVO.getPageSize(),pageBaseVO.getPageNum() , keyTableRespVOS);
     }
 
     //todo 待实现
-    private List<KeyTableRespVO> findByEs(KeyTablePageVO pageBaseVO) {
+    private PageResult<KeyTableRespVO> findByEs(KeyTablePageVO pageBaseVO) {
         return null;
     }
 

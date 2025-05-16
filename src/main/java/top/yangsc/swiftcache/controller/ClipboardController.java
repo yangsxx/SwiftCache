@@ -8,12 +8,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import top.yangsc.swiftcache.base.ResultData;
+import top.yangsc.swiftcache.config.PageResult;
 import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
 import top.yangsc.swiftcache.controller.bean.vo.CreateClipboardVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 import top.yangsc.swiftcache.services.ClipboardHistoryService;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping("/clipboard")
@@ -32,7 +34,7 @@ public class ClipboardController {
 
     @PostMapping("/getByPage")
     @Operation(summary = "分页获取剪贴板")
-    public ResultData<ClipboardRespVO> getClipboardByPage(@RequestBody ClipboardPageVO clipboardPageVO)
+    public ResultData<PageResult<ClipboardRespVO>> getClipboardByPage(@RequestBody ClipboardPageVO clipboardPageVO)
     {
         return clipboardHistoryService.getClipboard(clipboardPageVO);
     }

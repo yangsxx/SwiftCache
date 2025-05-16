@@ -2,6 +2,7 @@ package top.yangsc.swiftcache.services;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.yangsc.swiftcache.base.pojo.KeyTable;
+import top.yangsc.swiftcache.config.PageResult;
 import top.yangsc.swiftcache.controller.bean.vo.KeyTablePageVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.KeyTableRespVO;
@@ -19,5 +20,5 @@ public interface KeyTableService extends IService<KeyTable> {
 
     boolean updatePermission(Long id, int permission);
 
-    List<KeyTableRespVO> getKeyTableByPage(KeyTablePageVO pageBaseVO);
+    PageResult<KeyTableRespVO> getKeyTableByPage(KeyTablePageVO pageBaseVO);
 }

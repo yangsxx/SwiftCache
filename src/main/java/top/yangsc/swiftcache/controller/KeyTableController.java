@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import top.yangsc.swiftcache.base.Exception.ParameterValidationException;
 import top.yangsc.swiftcache.base.ResultData;
+import top.yangsc.swiftcache.config.PageResult;
 import top.yangsc.swiftcache.controller.bean.vo.KeyTablePageVO;
 import top.yangsc.swiftcache.controller.bean.vo.PageBaseVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
@@ -64,7 +65,7 @@ public class KeyTableController {
     }
 
     @PostMapping("/getByPage")
-    public ResultData<List<KeyTableRespVO>> getValueByPage(@RequestBody KeyTablePageVO pageBaseVO) {
+    public ResultData<PageResult<KeyTableRespVO>> getValueByPage(@RequestBody KeyTablePageVO pageBaseVO) {
         return  ResultData.ok(keyTableService.getKeyTableByPage(pageBaseVO));
     }
 

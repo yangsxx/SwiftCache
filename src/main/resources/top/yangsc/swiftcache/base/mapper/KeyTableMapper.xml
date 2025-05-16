@@ -17,6 +17,14 @@
         order by updated_at desc , created_at desc
         limit #{pageSize} offset #{offset}
     </select>
+    <select id="selectCountByPage" resultType="java.lang.Long">
+        select count(*) from key_table
+        where (permission_level=1 or permission_level=0 or user_id=#{userId})
+        and is_deleted=false
+        <if test="permission != null">
+            and permission_level=#{permission}
+        </if>
+    </select>
 
 
 </mapper>

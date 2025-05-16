@@ -1,18 +1,25 @@
 package top.yangsc.swiftcache.services.impl;
 
 import cn.hutool.crypto.digest.MD5;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import top.yangsc.swiftcache.base.ResultData;
+import top.yangsc.swiftcache.base.cache.FindUserWithCache;
 import top.yangsc.swiftcache.base.mapper.ClipboardHistoryMapper;
 import top.yangsc.swiftcache.base.mapper.ClipboardValuesMapper;
 import top.yangsc.swiftcache.base.pojo.ClipboardHistory;
+import top.yangsc.swiftcache.base.pojo.ClipboardValues;
+import top.yangsc.swiftcache.config.PageResult;
 import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
 import top.yangsc.swiftcache.controller.bean.vo.CreateClipboardVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 import top.yangsc.swiftcache.services.ClipboardHistoryService;
+import top.yangsc.swiftcache.tools.TimestampUtil;
 
 import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.List;
 
 @Service
 public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMapper, ClipboardHistory> implements ClipboardHistoryService {
@@ -49,9 +56,14 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     }
 
     @Override
-    public ResultData<ClipboardRespVO> getClipboard(ClipboardPageVO clipboardPageVO) {
+    public ResultData<PageResult<ClipboardRespVO>> getClipboard(ClipboardPageVO clipboardPageVO) {
         clipboardPageVO.setOffset((clipboardPageVO.getPageNum()-1) * clipboardPageVO.getPageSize());
-        ClipboardRespVO clipboardPageRespVO = clipboardHistoryMapper.getClipboard(clipboardPageVO);
-        return ResultData.ok("获取成功",clipboardPageRespVO);
+        List<ClipboardRespVO> clipboardPageRespVO = clipboardHistoryMapper.getClipboard(clipboardPageVO);
+        clipboardPageRespVO.forEach(clipboardRespVO -> {
+            clipboardRespVO.setUserName(FindUserWithCache.findUserById(clipboardRespVO.getUserId()).getUserName());
+            clipboardRespVO.setCreateTime(TimestampUtil.format(clipboardRespVO.getCreatedAt()));
+        });
+        Long l = clipboardValuesMapper.selectCount(new LambdaQueryWrapper<>());
+        return ResultData.ok("获取成功",PageResult.init(l,clipboardPageVO.getPageSize(),clipboardPageVO.getPageNum(),clipboardPageRespVO));
     }
 }

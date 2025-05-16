@@ -6,7 +6,10 @@ import top.yangsc.swiftcache.base.pojo.ClipboardHistory;
 import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 
+import java.util.List;
+
 @Mapper
 public interface ClipboardHistoryMapper extends BaseMapper<ClipboardHistory> {
-    ClipboardRespVO getClipboard(ClipboardPageVO clipboardPageVO);
+    List<ClipboardRespVO> getClipboard(ClipboardPageVO clipboardPageVO);
+
 }

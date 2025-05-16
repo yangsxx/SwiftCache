@@ -7,11 +7,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.List;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageResult implements Serializable {
+public class PageResult<T> implements Serializable {
     //总条数
     private Long counts;
     //当前页数
@@ -21,7 +20,7 @@ public class PageResult implements Serializable {
     //总页数
     private Long totalPage;
 
-    private List data;
+    private List<T> data;
 
     /**
      *
@@ -31,11 +30,8 @@ public class PageResult implements Serializable {
      * @param data // 数据
      * @return
      */
-    public static PageResult init(Long counts, Long pageSize, Long currentPage, List data){
+    public static <T> PageResult<T> init(Long counts, Long pageSize, Long currentPage, List<T> data){
         long totalPage = counts % pageSize == 0 ? counts/pageSize : counts/pageSize + 1;
-
-        return new PageResult(counts, currentPage, pageSize, totalPage, data);
+        return new PageResult<>(counts, currentPage, pageSize, totalPage, data);
     }
-
-
 }

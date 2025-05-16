@@ -7,11 +7,9 @@ import top.yangsc.swiftcache.controller.annotation.Condition;
 
 @Data
 public class PageBaseVO implements BaseVO {
-    @Condition(clz = Integer.class)
-    public int pageNum;
-    @Condition(clz = Integer.class)
-    public int pageSize;
-    private int offset;
+    public long pageNum;
+    public long pageSize;
+    private long offset;
 
     @Override
     public void validation() {
