@@ -22,4 +22,20 @@
             and ${condition}
         </if>
     </select>
+    <select id="countHistory" resultType="top.yangsc.swiftcache.base.pojo.ExecutionLogHistory">
+        SELECT
+            REPLACE(class_name, 'top.yangsc.swiftcache.controller.', '') || '.' || method_name AS method_name,
+            ROUND(AVG(execution_time), 2) AS avg_time,
+            COUNT(*) AS times,
+            MAX(execution_time) AS max_time  <!-- 移除末尾多余的逗号 -->
+        FROM
+            public.execution_log
+        WHERE
+            created_at >= CURRENT_TIMESTAMP - INTERVAL '24 HOURS'
+          AND system_info LIKE 'Linux%'
+        GROUP BY
+            class_name, method_name
+        ORDER BY
+            avg_time DESC;  <!-- 修正中文列名为别名 avg_time -->
+    </select>
 </mapper>

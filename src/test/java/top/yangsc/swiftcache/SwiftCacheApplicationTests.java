@@ -3,6 +3,7 @@ package top.yangsc.swiftcache;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import top.yangsc.swiftcache.Schedule.CountTask;
 import top.yangsc.swiftcache.ai.HuoShanAiService;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,6 +14,9 @@ class SwiftCacheApplicationTests {
 
 	@Autowired
 	private HuoShanAiService huoShanAiService;
+
+	@Autowired
+	private CountTask countTask;
 
 	@Test
 	void testSimpleGenerateText() {
@@ -31,5 +35,10 @@ class SwiftCacheApplicationTests {
 		// 测试空问题
 		String response = huoShanAiService.simpleGenerateText("");
 		assertNotNull(response);
+	}
+
+	@Test
+	void testCountTask() {
+		countTask.count();
 	}
 }
