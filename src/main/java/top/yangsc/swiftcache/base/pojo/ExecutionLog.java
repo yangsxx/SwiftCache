@@ -31,6 +31,9 @@ public class ExecutionLog implements Serializable {
     @Schema(description = "执行时间(ms)")
     private Long executionTime;
 
+    @Schema(description = "执行时间(ms)")
+    private Long validatorTime;
+
     @Schema(description = "记录创建时间")
     @TableField(fill = FieldFill.INSERT)
     private Timestamp createdAt;

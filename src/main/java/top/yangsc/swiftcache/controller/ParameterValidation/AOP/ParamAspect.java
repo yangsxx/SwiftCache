@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 @Aspect
 @Component
 public class ParamAspect {
+    // 添加包路径常量
+    private static final String VO_PACKAGE = "top.yangsc.swiftcache.controller.bean.vo";
 
     @Pointcut("execution(* top.yangsc.swiftcache.controller..*Controller.*(..))")
     public void paramPointCut(){
@@ -47,27 +49,32 @@ public class ParamAspect {
                             voClass = getVOClass(arg);
                         }catch (Exception e){
                         }
-                        if (voClass!=null){
-                        Validator.doValidator(voClass,arg);
+                    // 修改验证调用逻辑
+                    if (voClass != null
+                            && voClass.getPackage() != null
+                            && voClass.getPackage().getName().startsWith(VO_PACKAGE)) {
+                        Validator.doValidator(voClass, arg);
                     }
                 }
             }
+        Long validatorTime = System.currentTimeMillis();
 
             o = joinPoint.proceed();
         Long endTime = System.currentTimeMillis();
-        recordRuntime(endTime-startTime,declaringTypeName,name);
+        recordRuntime(endTime-startTime,validatorTime-startTime,declaringTypeName,name);
         return o;
 
     }
     private Class getVOClass(Object o) {
         return ObjectUtil.getClassByObject(o);
     }
-    private void recordRuntime(Long time,String clazzName,String methodName) {
+    private void recordRuntime(Long time,long  validatorTime,String clazzName,String methodName) {
         ExecutionLogMapper bean = SpringContextUtil.getBean(ExecutionLogMapper.class);
         ExecutionLog executionLog = new ExecutionLog();
         executionLog.setClassName(clazzName);
         executionLog.setMethodName(methodName);
         executionLog.setExecutionTime(time);
+        executionLog.setValidatorTime(validatorTime);
         executionLog.setSqlQueryTime(CurrentContext.getSqlQueryCount());
         executionLog.setSqlUpdateTime(CurrentContext.getSqlUpdateCount());
         bean.insert(executionLog);
