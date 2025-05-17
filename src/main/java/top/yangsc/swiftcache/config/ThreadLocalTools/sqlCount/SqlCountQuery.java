@@ -24,7 +24,7 @@ public class SqlCountQuery implements Interceptor {
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        CurrentContext.setSqlCount(true);
+        CurrentContext.setSqlCount(1);
         return invocation.proceed();
     }
 

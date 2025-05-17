@@ -51,6 +51,8 @@ mybatis-plus:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   type-aliases-package: top.yangsc.swiftcache.base.pojo
 
+# 豆包：ep-20250208211342-pzmrf
+# deepseek-R1:ep-20250208153140-46hgm
 ark-ai:
   api-key: 9eba2453-6068-4509-8a47-0f4c0170f868
   model-id: ep-20250328102116-p2wtl

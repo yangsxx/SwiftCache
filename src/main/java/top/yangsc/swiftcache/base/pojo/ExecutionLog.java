@@ -41,6 +41,8 @@ public class ExecutionLog implements Serializable {
     private Integer sqlQueryTime;
     @Schema(description = "更新次数")
     private Integer sqlUpdateTime;
+    @Schema(description = "总次数")
+    private Integer totalSqlTimes;
 
     @Schema(description = "执行结果")
     @TableField(fill = FieldFill.INSERT)

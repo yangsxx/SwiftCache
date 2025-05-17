@@ -38,12 +38,12 @@ public class CurrentContext {
         stringObjectMap.put("sqlUpdateCount", 0);
     }
 
-    public static void setSqlCount(boolean isQuery){
+    public static void setSqlCount(int isQuery){
         Map<String, Object> stringObjectMap = current.get();
-        if (isQuery){
+        if (isQuery == 1){
             int i = (int)stringObjectMap.get("sqlQueryCount") + 1;
             stringObjectMap.put("sqlQueryCount", i);
-        }else {
+        }else if (isQuery == 2){
             int j = (int)stringObjectMap.get("sqlUpdateCount") + 1;
             stringObjectMap.put("sqlUpdateCount", j);
         }
@@ -55,6 +55,10 @@ public class CurrentContext {
     public static int getSqlUpdateCount() {
         return (int) current.get().get("sqlUpdateCount");
     }
+
+    public static int getTotalSqlCount() {
+        return getSqlQueryCount() + getSqlUpdateCount();
+     }
 
 }
 

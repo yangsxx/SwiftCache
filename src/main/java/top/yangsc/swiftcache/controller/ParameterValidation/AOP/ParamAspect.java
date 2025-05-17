@@ -10,13 +10,11 @@ import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.base.mapper.ExecutionLogMapper;
 import top.yangsc.swiftcache.base.pojo.ExecutionLog;
 import top.yangsc.swiftcache.config.ThreadLocalTools.CurrentContext;
-import top.yangsc.swiftcache.config.ThreadLocalTools.sqlCount.SqlCountQuery;
-import top.yangsc.swiftcache.config.ThreadLocalTools.sqlCount.SqlCountUpdate;
 import top.yangsc.swiftcache.tools.ObjectUtil;
 import top.yangsc.swiftcache.tools.SpringContextUtil;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Method;
+
 
 
 @Aspect
@@ -80,6 +78,7 @@ public class ParamAspect {
         executionLog.setValidatorTime(validatorTime);
         executionLog.setSqlQueryTime(CurrentContext.getSqlQueryCount());
         executionLog.setSqlUpdateTime(CurrentContext.getSqlUpdateCount());
+        executionLog.setTotalSqlTimes(CurrentContext.getTotalSqlCount());
         bean.insert(executionLog);
 
     }
