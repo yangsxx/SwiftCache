@@ -28,13 +28,12 @@ public class CountTask {
     private SimpleMapper simpleMapper;
 
     // 添加定时注解（每天凌晨3点执行）
-    @Scheduled(cron = "0 0 3 * * ?")
+    @Scheduled(cron = "0 0 3 * * ?", zone = "Asia/Shanghai")
     public void count() {
         List<ExecutionLogHistory> executionLogHistory =  simpleMapper.countHistory();
 
         for (ExecutionLogHistory logHistory : executionLogHistory){
             logHistory.setDay(TimestampUtil.format(new Timestamp(System.currentTimeMillis())));
-//            mapper.insert(logHistory);
         }
         mapper.insertBatchSomeColumn(executionLogHistory);
 
