@@ -3,6 +3,7 @@ package top.yangsc.swiftcache.Schedule.mq;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.druid.util.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -66,10 +67,13 @@ public class Consumer {
             keys.setValueTableId(keysDTO.getValueTableId());
         }
         if (keysDTO.getClipboardValueId() != null) {
-            keys.setClipboardValueId(keysDTO.getId());
+            keys.setClipboardValueId(keysDTO.getClipboardValueId());
         }
-        keys.setKeys(bean.getKeys());
-        keysMapper.insert(keys);
+        if (!StringUtils.isEmpty(bean.getKeys())){
+            keys.setKeys(bean.getKeys());
+            keysMapper.insert(keys);
+        }
+
     }
 
     private String generateAsk(String question) {
