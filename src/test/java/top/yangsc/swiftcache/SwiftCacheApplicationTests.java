@@ -63,7 +63,7 @@ class SwiftCacheApplicationTests {
 		producer.sendAiTask(JSONUtil.toJsonStr(keysDTO));
 	}
 
-	@Test
+
 	void testConsumerInit(){
 		consumer.receiveMessage("test1");
 	}

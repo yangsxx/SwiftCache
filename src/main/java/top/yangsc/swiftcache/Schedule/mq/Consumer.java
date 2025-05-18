@@ -1,7 +1,6 @@
 package top.yangsc.swiftcache.Schedule.mq;
 
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONObject;
+
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.util.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,28 +8,18 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.ai.BaseAiService;
-import top.yangsc.swiftcache.ai.HuoShanAiService;
 import top.yangsc.swiftcache.ai.ResultDTO;
-import top.yangsc.swiftcache.base.ResultData;
 import top.yangsc.swiftcache.base.mapper.*;
 import top.yangsc.swiftcache.base.pojo.*;
-import top.yangsc.swiftcache.config.PageResult;
-import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
-import top.yangsc.swiftcache.controller.bean.vo.CreateClipboardVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
-import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ForKeyValue;
-import top.yangsc.swiftcache.services.ClipboardHistoryService;
 import top.yangsc.swiftcache.services.KeyTableService;
-
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
 
 @Component
 public class Consumer {
