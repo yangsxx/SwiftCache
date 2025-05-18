@@ -43,11 +43,14 @@ public class Consumer {
     private static final int CONTENT_PREVIEW_LENGTH = 32;
     private final BlockingQueue<String> contentCache = new LinkedBlockingQueue<>(MAX_CONTENT_ITEMS);
     private static final String AI_QUEUE = "\"${content}\"" +
-            "这是一条来自于剪切板复制的记录，请较为严格的判断他是否具有记录为kv型笔记的价值(尽量只挑选高价值信息，如url连接，非常用复杂的命令等)，注意不要包含日志信息，小片段代码(不具有逻辑性的)。" +
-            "如有请生成合适的json回答包含，" +
-            "cover(bool)  ,key(根据内容自动生成,中文优先) ,value(原始值),keys(提取供查询使用的关键字，" +
-            "优先中文条目和必要的英文条目，通过空格隔开)。如无请生成json回答包含，" +
-            "cover,keys。只回答结果 以下是最近的十条剪切板记录(截取前部分)如有内容重复，请忽略返回cover为false：${last}";
+            "这是一条来自于剪切板复制的记录请较为严格的判断他是否具有记录为kv型笔记的价值," +
+            "尽量只挑选高价值信息如url连接，非常用复杂的命令等，" +
+            "注意不要包含日志信息，不具有逻辑性的小片段代码。" +
+            "生成合适的json回答包含" +
+            "cover(bool),key(根据内容自动生成,中文优先) ,value(原始值),keys(提取供查询使用的关键字，" +
+            "优先中文条目和必要的英文条目，通过空格隔开)。无价值请生成json回答包含，" +
+            "cover,keys只回答结果 以下是最近的十条剪切板记录(截取前部分)如有内容重复，请忽略返回cover为false：" +
+            "${last}";
     // 快速hash判断
     private boolean quickCheckDuplicate(String content) {
         if (StringUtils.isEmpty(content)) {
