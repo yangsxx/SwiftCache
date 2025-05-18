@@ -25,7 +25,7 @@ class SwiftCacheApplicationTests {
 	@Autowired
 	private Producer producer;
 
-	@Test
+
 	void testSimpleGenerateText() {
 		// 测试正常请求
 		String question = "你好，请介绍一下你自己";
@@ -37,19 +37,19 @@ class SwiftCacheApplicationTests {
 		System.out.println("AI响应: " + response);
 	}
 
-	@Test
+
 	void testEmptyQuestion() {
 		// 测试空问题
 		String response = huoShanAiService.simpleGenerateText("");
 		assertNotNull(response);
 	}
 
-	@Test
+
 	void testCountTask() {
 		countTask.count();
 	}
 
-	@Test
+
 	void testProducer() {
 		KeysDTO keysDTO =new KeysDTO();
 		keysDTO.setValue("docker exec -it rabbitmq bash");

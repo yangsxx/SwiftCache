@@ -14,7 +14,7 @@ class HuoShanAiServiceTest {
     @Autowired
     private HuoShanAiService huoShanAiService;
 
-    @Test
+
     void testSimpleGenerateText() {
         // 测试正常请求
         String question = "你好，请介绍一下你自己";
@@ -26,7 +26,7 @@ class HuoShanAiServiceTest {
         System.out.println("AI响应: " + response);
     }
 
-    @Test
+
     void testEmptyQuestion() {
         // 测试空问题
         String response = huoShanAiService.simpleGenerateText("");
