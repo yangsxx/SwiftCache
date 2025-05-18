@@ -23,6 +23,7 @@ import top.yangsc.swiftcache.tools.TimestampUtil;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMapper, ClipboardHistory> implements ClipboardHistoryService {
@@ -41,9 +42,12 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     @Override
     public ResultData<String> createClipboard(CreateClipboardVO createClipboardVO) {
 //      查重插入，并获取id
-        Long l = clipboardValuesMapper.insertOne(createClipboardVO.getContent());
+        Map<String,Object> resultMap = clipboardValuesMapper.insertOne(createClipboardVO.getContent());
+        Long  l = (Long) resultMap.get("id");
+        Boolean pertain = (Boolean) resultMap.get("pertain");
 
-        if (l == null){
+
+        if ( l == null){
             throw  new RuntimeException("数据库操作失败，请联系管理员");
         }
         ClipboardHistory clipboardHistory = new ClipboardHistory();
@@ -54,7 +58,10 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
 
         clipboardHistoryMapper.insert(clipboardHistory);
 
-        aiTask(clipboardHistory.getId(),createClipboardVO.getContent());
+        if (pertain){
+            aiTask(clipboardHistory.getId(),createClipboardVO.getContent());
+        }
+
 
         return ResultData.ok("记录完成");
     }

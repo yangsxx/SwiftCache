@@ -2,8 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.yangsc.swiftcache.base.mapper.ClipboardValuesMapper">
 
-
-    <select id="insertOne" resultType="long">
+    <select id="insertOne" resultType="java.util.Map">
             WITH inserted AS (
                 INSERT INTO clipboard_values(id, content, content_md5)
                     VALUES (
@@ -12,8 +11,9 @@
                                decode(md5(#{content}), 'hex')
                            )
                     ON CONFLICT (content_md5) DO UPDATE SET content = EXCLUDED.content
-                    RETURNING id
+                    RETURNING id, (xmax = 0) AS pertain
             )
-            SELECT id FROM inserted;
+            SELECT id, pertain FROM inserted;
     </select>
+
 </mapper>
