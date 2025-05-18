@@ -36,7 +36,7 @@ public class ClipboardController {
     @Operation(summary = "分页获取剪贴板")
     public ResultData<PageResult<ClipboardRespVO>> getClipboardByPage(@RequestBody ClipboardPageVO clipboardPageVO)
     {
-        return clipboardHistoryService.getClipboard(clipboardPageVO);
+        return ResultData.ok(clipboardHistoryService.getClipboard(clipboardPageVO));
     }
 
 

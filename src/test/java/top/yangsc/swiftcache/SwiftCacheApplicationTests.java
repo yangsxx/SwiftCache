@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.yangsc.swiftcache.Schedule.CountTask;
+import top.yangsc.swiftcache.Schedule.mq.Consumer;
 import top.yangsc.swiftcache.Schedule.mq.KeysDTO;
 import top.yangsc.swiftcache.Schedule.mq.Producer;
 import top.yangsc.swiftcache.ai.HuoShanAiService;
+
+import javax.annotation.Resource;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,6 +27,9 @@ class SwiftCacheApplicationTests {
 
 	@Autowired
 	private Producer producer;
+
+	@Resource
+	private Consumer consumer;
 
 
 	void testSimpleGenerateText() {
@@ -55,5 +61,10 @@ class SwiftCacheApplicationTests {
 		keysDTO.setValue("docker exec -it rabbitmq bash");
 		keysDTO.setValueTableId(10000200L);
 		producer.sendAiTask(JSONUtil.toJsonStr(keysDTO));
+	}
+
+	@Test
+	void testConsumerInit(){
+		consumer.receiveMessage("test1");
 	}
 }

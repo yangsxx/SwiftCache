@@ -4,33 +4,90 @@ import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.util.StringUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import top.yangsc.swiftcache.ai.BaseAiService;
 import top.yangsc.swiftcache.ai.HuoShanAiService;
 import top.yangsc.swiftcache.ai.ResultDTO;
-import top.yangsc.swiftcache.base.mapper.KeysMapper;
-import top.yangsc.swiftcache.base.pojo.Keys;
+import top.yangsc.swiftcache.base.ResultData;
+import top.yangsc.swiftcache.base.mapper.*;
+import top.yangsc.swiftcache.base.pojo.*;
+import top.yangsc.swiftcache.config.PageResult;
+import top.yangsc.swiftcache.controller.bean.vo.ClipboardPageVO;
 import top.yangsc.swiftcache.controller.bean.vo.CreateClipboardVO;
 import top.yangsc.swiftcache.controller.bean.vo.UpdateKeyValueVO;
+import top.yangsc.swiftcache.controller.bean.vo.resp.ClipboardRespVO;
 import top.yangsc.swiftcache.controller.bean.vo.resp.ForKeyValue;
+import top.yangsc.swiftcache.services.ClipboardHistoryService;
 import top.yangsc.swiftcache.services.KeyTableService;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 @Component
 public class Consumer {
 
-    private static String AI_QUEUE = "\"${}\"" +
+    @Resource
+    private ClipboardValuesMapper clipboardValuesMapper;
+
+    @Resource
+    private KeyTableMapper  keyTableMapper;
+
+    @Resource
+    private ValueTableMapper  valueTableMapper;
+
+    // 第一级缓存：快速hash判断（100条）
+    private static final int MAX_HASH_ITEMS = 100;
+    private static boolean  isInit = false;
+    private final BlockingQueue<Integer> hashCache = new LinkedBlockingQueue<>(MAX_HASH_ITEMS);
+
+    // 第二级缓存：精确内容判断（10条）
+    private static final int MAX_CONTENT_ITEMS = 10;
+    private static final int CONTENT_PREVIEW_LENGTH = 32;
+    private final BlockingQueue<String> contentCache = new LinkedBlockingQueue<>(MAX_CONTENT_ITEMS);
+    private static final String AI_QUEUE = "\"${content}\"" +
             "这是一条来自于剪切板复制的记录，请较为严格的判断他是否具有记录为kv型笔记的价值(尽量只挑选高价值信息，如url连接，非常用复杂的命令等)，注意不要包含日志信息，小片段代码(不具有逻辑性的)。" +
             "如有请生成合适的json回答包含，" +
             "cover(bool)  ,key(根据内容自动生成,中文优先) ,value(原始值),keys(提取供查询使用的关键字，" +
             "优先中文条目和必要的英文条目，通过空格隔开)。如无请生成json回答包含，" +
-            "cover,keys。只回答结果";
+            "cover,keys。只回答结果 以下是最近的十条剪切板记录(截取前部分)如有内容重复，请忽略返回cover为false：${last}";
+    // 快速hash判断
+    private boolean quickCheckDuplicate(String content) {
+        if (StringUtils.isEmpty(content)) {
+            return false;
+        }
 
+        int hash = content.hashCode();
+        if (hashCache.contains(hash)) {
+            return true;
+        }
+
+        if (hashCache.remainingCapacity() == 0) {
+            hashCache.poll();
+        }
+        hashCache.offer(hash);
+        return false;
+    }
+
+    private String substringConcat() {
+        StringBuilder sb = new StringBuilder();
+        for (String content : contentCache) {
+            String truncated = content.length() > CONTENT_PREVIEW_LENGTH
+                ? content.substring(0, CONTENT_PREVIEW_LENGTH)
+                : content;
+            sb.append("[").append(truncated).append("]");
+        }
+        return sb.toString().trim();
+    }
+    
     @Autowired
     private BaseAiService baseAiService;
 
@@ -39,18 +96,60 @@ public class Consumer {
 
     @Resource
     private KeyTableService keyTableService;
-    @RabbitListener(queues = "aiClipboard.queue")
+    @RabbitListener(queues = "ai.queue")
     public void receiveMessage(String message) {
+        if (!isInit){
+            isInit = true;
+            init();
+        }
         KeysDTO bean = JSONUtil.toBean(message, KeysDTO.class);
         aiClipboardTask(bean);
     }
 
+    private void init() {
+
+        clipboardValuesMapper.selectList(new LambdaQueryWrapper<ClipboardValues>()
+                .orderByDesc(ClipboardValues::getId)
+                .last("limit 100")).forEach(clipboardValues -> {
+                    hashCache.offer(clipboardValues.getContentMd5().hashCode());
+                });
+        List<Long> collect = keyTableMapper.selectList(new LambdaQueryWrapper<KeyTable>()
+                        .orderByDesc(KeyTable::getId)
+                        .last("limit 10")).stream().map(KeyTable::getId)
+                .toList();
+        Map<String, Integer> collect1 = new HashMap<>();
+        valueTableMapper.selectList(new LambdaQueryWrapper<ValueTable>()
+                .in(ValueTable::getKeyId, collect)
+                .orderByDesc(ValueTable::getVersion)).forEach(valueTable -> {
+                    String key =  valueTable.getId() +"￥￥"+ valueTable.getValueData();
+                    if (collect1.containsKey(valueTable.getId()+valueTable.getValueData())){
+
+                        Integer i = collect1.get(key);
+                        if (i <  valueTable.getVersion()){
+                            collect1.put(key,valueTable.getVersion());
+                        }
+                    }
+                    collect1.put(key,valueTable.getVersion());
+                });
+        collect1.forEach((k,v)->{
+            contentCache.offer(k.split("￥￥")[1]);
+        });
+
+    }
+
     private void aiClipboardTask(KeysDTO keysDTO) {
+        if (quickCheckDuplicate(keysDTO.getValue())){
+            return;
+        }
         String s = baseAiService.simpleGenerateText(generateAsk(keysDTO.getValue()));
         String replace = s.replace("```json", "").replace("```", "");
         ResultDTO bean = JSONUtil.toBean(replace, ResultDTO.class);
         Keys keys = new Keys();
         if (bean.getCover()) {
+            if (contentCache.remainingCapacity() == 0) {
+                contentCache.poll(); // Remove the oldest entry if queue is full
+            }
+            contentCache.offer(keysDTO.getValue());
             UpdateKeyValueVO createClipboardVO = new UpdateKeyValueVO();
             ForKeyValue forKeyValue = new ForKeyValue();
             forKeyValue.setCreateBy("system");
@@ -77,6 +176,6 @@ public class Consumer {
     }
 
     private String generateAsk(String question) {
-        return AI_QUEUE.replace("${}",question);
+        return AI_QUEUE.replace("${content}",question).replace("${last}",substringConcat());
     }
 }

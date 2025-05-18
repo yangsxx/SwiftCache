@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class Producer {
-    private static final String QUEUE_NAME = "aiClipboard.queue";
+    private static final String QUEUE_NAME = "ai.queue";
     
     private final RabbitTemplate rabbitTemplate;
     

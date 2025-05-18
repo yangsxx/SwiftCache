@@ -9,6 +9,6 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue aiClipboardQueue() {
-        return new Queue("aiClipboard.queue");
+        return new Queue("ai.queue");
     }
 }

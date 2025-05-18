@@ -60,7 +60,7 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
     }
 
     @Override
-    public ResultData<PageResult<ClipboardRespVO>> getClipboard(ClipboardPageVO clipboardPageVO) {
+    public PageResult<ClipboardRespVO> getClipboard(ClipboardPageVO clipboardPageVO) {
         clipboardPageVO.setOffset((clipboardPageVO.getPageNum()-1) * clipboardPageVO.getPageSize());
         List<ClipboardRespVO> clipboardPageRespVO = clipboardHistoryMapper.getClipboard(clipboardPageVO);
         clipboardPageRespVO.forEach(clipboardRespVO -> {
@@ -68,7 +68,7 @@ public class ClipboardHistoryServiceImpl extends ServiceImpl<ClipboardHistoryMap
             clipboardRespVO.setCreateTime(TimestampUtil.format(clipboardRespVO.getCreatedAt()));
         });
         Long l = clipboardValuesMapper.selectCount(new LambdaQueryWrapper<>());
-        return ResultData.ok("获取成功",PageResult.init(l,clipboardPageVO.getPageSize(),clipboardPageVO.getPageNum(),clipboardPageRespVO));
+        return PageResult.init(l,clipboardPageVO.getPageSize(),clipboardPageVO.getPageNum(),clipboardPageRespVO);
     }
 
     private void aiTask(Long clipboardId ,String content){

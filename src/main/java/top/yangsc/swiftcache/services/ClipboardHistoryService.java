@@ -13,5 +13,5 @@ import java.util.List;
 public interface ClipboardHistoryService extends IService<ClipboardHistory> {
     ResultData<String> createClipboard(CreateClipboardVO createClipboardVO);
 
-    ResultData<PageResult<ClipboardRespVO>> getClipboard(ClipboardPageVO clipboardPageVO);
+    PageResult<ClipboardRespVO> getClipboard(ClipboardPageVO clipboardPageVO);
 }
