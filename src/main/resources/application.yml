@@ -1,6 +1,7 @@
 server:
   port: 8080  # 应用服务端口
 
+
 spring:
   datasource:
     url: jdbc:postgresql://ip.yangsc.top:5432/swiftcache
@@ -42,13 +43,17 @@ spring:
     password: admin123
     virtual-host: /
 
+  info:
+    git:
+      location: classpath:git.properties
+
 mybatis-plus:
   mapper-locations: classpath*:*/mapper/**/*.xml
   # mapper-locations: classpath:*/mapper/**/*.xml
   configuration:
     #默认开启驼峰命名法，可以不用设置该属性
     map-underscore-to-camel-case: true
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   type-aliases-package: top.yangsc.swiftcache.base.pojo
 
 # 豆包：ep-20250208211342-pzmrf
@@ -63,3 +68,7 @@ logging:
     com.baomidou.mybatisplus: ERROR   # 关闭 MyBatis-Plus 日志
     java.sql: ERROR                   # 关闭 JDBC 日志
     org.postgresql: ERROR
+management:
+  info:
+    git:
+      mode: full

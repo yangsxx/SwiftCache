@@ -27,7 +27,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>21</java.version>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -177,6 +179,41 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>4.9.10</version>
+				<executions>
+					<execution>
+						<id>get-the-git-info</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+					<!-- false：扫描路径时不打印更多信息，默认值false，可以不配置 -->
+					<verbose>false</verbose>
+					<!-- 定义插件中所有时间格式，默认值：yyyy-MM-dd’T’HH:mm:ssZ -->
+					<dateFormat>yyyy-MM-dd HH:mm:ss</dateFormat>
+					<!-- git属性文件中各属性前缀，默认值git，可以不配置 -->
+					<prefix>git</prefix>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<!-- 生成git属性文件路径及文件名，默认${project.build.outputDirectory}/git.properties -->
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<includeOnlyProperties>
+						<include>git.commit.id</include>
+						<include>git.commit.time</include>
+					</includeOnlyProperties>
+					<gitDescribe>
+						<skip>false</skip>
+						<always>false</always>
+						<dirty>-dirty</dirty>
+					</gitDescribe>
 				</configuration>
 			</plugin>
 		</plugins>
